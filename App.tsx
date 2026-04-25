@@ -31,40 +31,13 @@ export default function App() {
   const switchTo = async (channelName: string) => {
     Keyboard.dismiss()
     setError(null)
-
-    // Set the override + fetch the new bundle BEFORE reload. This separates
-    // the network step (always works) from the reload step (occasionally
-    // fails on iOS with "Could not reload application. Ensure you have set
-    // the appContext property of AppController." after a prior OTA reload
-    // in the same session — a known race in expo-updates AppController).
-    let fetchedNewBundle = false
     try {
       Updates.setUpdateRequestHeadersOverride({
         'expo-channel-name': channelName,
       })
-      const check = await Updates.checkForUpdateAsync()
-      if (check.isAvailable) {
-        await Updates.fetchUpdateAsync()
-        fetchedNewBundle = true
-      }
-    } catch (err) {
-      setError(
-        `Couldn't fetch ${channelName}: ${err instanceof Error ? err.message : String(err)}`,
-      )
-      return
-    }
-
-    // Try the live reload. If the appContext race trips us, the bundle is
-    // already staged on disk — falling back to a cold-restart prompt gets
-    // the user there reliably without confusing them with the native error.
-    try {
       await Updates.reloadAsync()
-    } catch {
-      setError(
-        fetchedNewBundle
-          ? `Downloaded ${channelName}. Force-quit the app and re-open to load it.`
-          : `Already on ${channelName}. Nothing new to load.`,
-      )
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
     }
   }
 
