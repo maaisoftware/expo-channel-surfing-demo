@@ -1,11 +1,15 @@
 import { useState } from 'react'
 import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   SafeAreaView,
   StatusBar,
   StyleSheet,
   Text,
   TextInput,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native'
 import * as Updates from 'expo-updates'
@@ -25,6 +29,7 @@ export default function App() {
   const embeddedChannel = Updates.channel ?? '(none — running in dev / Expo Go)'
 
   const switchTo = async (channelName: string) => {
+    Keyboard.dismiss()
     setError(null)
     try {
       Updates.setUpdateRequestHeadersOverride({
@@ -55,54 +60,70 @@ export default function App() {
     <SafeAreaView style={[styles.container, { backgroundColor: BG_COLOR }]}>
       <StatusBar barStyle="light-content" />
 
-      {/* Big colored hero — the bit that obviously differs per branch */}
-      <View style={styles.body}>
-        <Text style={styles.label}>Branch</Text>
-        <Text style={styles.branch}>{BRANCH_LABEL}</Text>
-        <Text style={styles.embedded}>Embedded channel: {embeddedChannel}</Text>
-      </View>
+      {/* KeyboardAvoidingView lifts the picker above the on-screen keyboard
+          so the Switch button stays reachable. TouchableWithoutFeedback over
+          the hero gives the user a way to dismiss the keyboard by tapping
+          the coloured area — number-pad has no Done key on iOS. */}
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <View style={styles.body}>
+            <Text style={styles.label}>Branch</Text>
+            <Text style={styles.branch}>{BRANCH_LABEL}</Text>
+            <Text style={styles.embedded}>
+              Embedded channel: {embeddedChannel}
+            </Text>
+          </View>
+        </TouchableWithoutFeedback>
 
-      {/* Channel surfer — the no-backend variant from the blog post.
-          Reader types a PR number, we override the expo-channel-name
-          request header and reload the runtime. The same install. The
-          same login state. A different bundle. */}
-      <View style={styles.picker}>
-        <Text style={styles.pickerTitle}>Channel surfer</Text>
-        <Text style={styles.pickerHint}>
-          Type a PR number to swap onto that branch&apos;s bundle.
-        </Text>
+        {/* Channel surfer — the no-backend variant from the blog post.
+            Reader types a PR number, we override the expo-channel-name
+            request header and reload the runtime. The same install. The
+            same login state. A different bundle. */}
+        <View style={styles.picker}>
+          <Text style={styles.pickerTitle}>Channel surfer</Text>
+          <Text style={styles.pickerHint}>
+            Type a PR number to swap onto that branch&apos;s bundle.
+          </Text>
 
-        <View style={styles.row}>
-          <TextInput
-            style={styles.input}
-            value={pr}
-            onChangeText={(v) => {
-              setPr(v)
-              if (error) setError(null)
-            }}
-            placeholder="PR #"
-            placeholderTextColor="#94a3b8"
-            keyboardType="number-pad"
-            autoCorrect={false}
-            autoCapitalize="none"
-          />
-          <Pressable style={styles.button} onPress={switchToPr}>
-            <Text style={styles.buttonText}>Switch</Text>
+          <View style={styles.row}>
+            <TextInput
+              style={styles.input}
+              value={pr}
+              onChangeText={(v) => {
+                setPr(v)
+                if (error) setError(null)
+              }}
+              placeholder="PR #"
+              placeholderTextColor="#94a3b8"
+              keyboardType="numeric"
+              returnKeyType="done"
+              onSubmitEditing={switchToPr}
+              autoCorrect={false}
+              autoCapitalize="none"
+              blurOnSubmit
+            />
+            <Pressable style={styles.button} onPress={switchToPr}>
+              <Text style={styles.buttonText}>Switch</Text>
+            </Pressable>
+          </View>
+
+          <Pressable style={styles.resetButton} onPress={switchToProduction}>
+            <Text style={styles.resetText}>Reset to production</Text>
           </Pressable>
+
+          {error ? <Text style={styles.error}>{error}</Text> : null}
         </View>
-
-        <Pressable style={styles.resetButton} onPress={switchToProduction}>
-          <Text style={styles.resetText}>Reset to production</Text>
-        </Pressable>
-
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-      </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  flex: { flex: 1 },
   body: {
     flex: 1,
     alignItems: 'center',
