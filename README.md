@@ -90,6 +90,29 @@ The blog post makes a few claims that are documented for some and inferred for o
 - **The override only affects the *next* update fetch.** First launch after a fresh install still runs the embedded JS; the switch only takes effect after the first reload.
 - **Runtime version mismatches fail loudly.** Try changing a native dep on a branch (e.g. add `expo-camera`) and watch the channel switch fail to apply on a binary built without it.
 
+## Common build errors
+
+### `Runtime version calculated on local machine not equal to runtime version calculated during build`
+
+You'll see this if you start with `runtimeVersion: { "policy": "fingerprint" }` on a managed Expo project, install with **pnpm on Windows**, and run `eas build`.
+
+The fingerprint algorithm hashes file paths inside `node_modules/.pnpm/`. pnpm truncates those paths on Windows because of the 260-character path limit, but uses full paths on Linux (which is what EAS Build runs). Identical packages with identical content produce different fingerprints purely because of the OS that did the install. The other half of the mismatch comes from EAS running `npx expo prebuild` before fingerprinting — generating an `ios/` directory that your local managed workflow doesn't have.
+
+This demo ships with `runtimeVersion: "1.0.0"` (a hardcoded string) for that reason. Channels with the same `expo.version` are runtime-compatible; that's all the runtime versioning a JS-only demo needs. The blog post still recommends `policy: "fingerprint"` for production projects — the demo just sidesteps the pnpm + managed + Windows interaction.
+
+If you want to use fingerprint policy here anyway, the workarounds are:
+- Install with **npm** instead of pnpm (deterministic paths cross-OS).
+- Switch to **bare workflow** by committing `ios/` and `android/` so EAS doesn't have to prebuild.
+- Run `npx expo prebuild` **locally before each `eas build`** so the local fingerprint includes the same `ios/` directory.
+
+### `entity not found` from EAS GraphQL
+
+You forgot to replace `REPLACE_WITH_YOUR_EAS_PROJECT_ID` in `app.json` with the project ID `npx eas init` printed.
+
+### `EXPO_TOKEN` not set in CI
+
+Add a [robot access token](https://expo.dev/accounts/[your-account]/settings/access-tokens) as a repo secret named `EXPO_TOKEN`. The workflow file references it but doesn't fail loudly until you push a PR and the action runs.
+
 ## License
 
 MIT. See [LICENSE](./LICENSE).
