@@ -1,0 +1,52 @@
+name: Publish preview channel
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Publish update + ensure channel
+        env:
+          PR: ${{ github.event.pull_request.number }}
+          MSG: ${{ github.event.pull_request.title }}
+        run: |
+          BRANCH="pr-${PR}"
+          eas update \
+            --branch "$BRANCH" \
+            --message "$MSG" \
+            --non-interactive
+          # `eas channel:create <name>` auto-links a same-named branch.
+          # If the channel already exists, point it at this branch instead.
+          eas channel:edit "$BRANCH" --branch "$BRANCH" --non-interactive || \
+            eas channel:create "$BRANCH" --non-interactive
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🟢 Channel \`pr-${{ github.event.pull_request.number }}\` is ready. Open the demo app, type \`${{ github.event.pull_request.number }}\` in the channel surfer, tap **Switch**.`,
+            })

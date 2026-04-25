@@ -1,0 +1,25 @@
+{
+  "name": "expo-channel-surfing-demo",
+  "version": "1.0.0",
+  "description": "Minimal Expo app demonstrating runtime channel switching with expo-updates v29 — companion to the MAAI blog post.",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "expo": "~54.0.0",
+    "expo-status-bar": "~3.0.0",
+    "expo-updates": "~29.0.0",
+    "react": "19.1.0",
+    "react-native": "0.81.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.1.0",
+    "typescript": "~5.9.0"
+  },
+  "private": true,
+  "license": "MIT"
+}

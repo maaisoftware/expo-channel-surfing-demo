@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "channel-surfing-demo",
+    "slug": "channel-surfing-demo",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "ca.maaisoftwareinc.channelsurfingdemo"
+    },
+    "android": {
+      "package": "ca.maaisoftwareinc.channelsurfingdemo"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/REPLACE_WITH_YOUR_EAS_PROJECT_ID",
+      "requestHeaders": {
+        "expo-channel-name": "production"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "plugins": ["expo-updates"]
+  }
+}
