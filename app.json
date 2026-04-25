@@ -1,20 +1,23 @@
 {
   "expo": {
     "name": "channel-surfing-demo",
-    "slug": "channel-surfing-demo",
+    "slug": "expo-channel-surfing-demo",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "ca.maaisoftwareinc.channelsurfingdemo"
+      "bundleIdentifier": "ca.maaisoftwareinc.channelsurfingdemo",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "ca.maaisoftwareinc.channelsurfingdemo"
     },
     "updates": {
-      "url": "https://u.expo.dev/REPLACE_WITH_YOUR_EAS_PROJECT_ID",
+      "url": "https://u.expo.dev/3c4b1b25-7910-47f9-a7ec-d4a0fba01875",
       "requestHeaders": {
         "expo-channel-name": "production"
       }
@@ -22,6 +25,14 @@
     "runtimeVersion": {
       "policy": "fingerprint"
     },
-    "plugins": ["expo-updates"]
+    "plugins": [
+      "expo-updates"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "3c4b1b25-7910-47f9-a7ec-d4a0fba01875"
+      }
+    },
+    "owner": "maai-software-inc"
   }
 }
