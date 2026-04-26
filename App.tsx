@@ -20,8 +20,8 @@ import * as Updates from 'expo-updates'
 // feat/blue-screen:   BG_COLOR = '#2563eb', BRANCH_LABEL = 'feat: blue screen'
 // feat/red-screen:    BG_COLOR = '#dc2626', BRANCH_LABEL = 'feat: red screen'
 // =============================================================================
-const BG_COLOR = '#475569'
-const BRANCH_LABEL = 'main'
+const BG_COLOR = '#2563eb'
+const BRANCH_LABEL = 'feat: blue screen'
 
 export default function App() {
   const [pr, setPr] = useState('')
