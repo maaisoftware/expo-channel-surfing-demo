@@ -31,13 +31,41 @@ export default function App() {
   const switchTo = async (channelName: string) => {
     Keyboard.dismiss()
     setError(null)
+
+    // setUpdateRequestHeadersOverride only updates config — it doesn't fetch.
+    // reloadAsync launches the most-recent compatible update from the local
+    // update DB, so on the first switch to a new channel there's no
+    // candidate until we fetch one. Without this, reloadAsync throws
+    // UpdatesReloadException — whose JS message about "appContext" is a
+    // generic catch-all wrapping any launcher failure on iOS, not the
+    // actual cause.
+    let fetchedNewBundle = false
     try {
       Updates.setUpdateRequestHeadersOverride({
         'expo-channel-name': channelName,
       })
-      await Updates.reloadAsync()
+      const check = await Updates.checkForUpdateAsync()
+      if (check.isAvailable) {
+        await Updates.fetchUpdateAsync()
+        fetchedNewBundle = true
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      setError(
+        `Couldn't fetch ${channelName}: ${err instanceof Error ? err.message : String(err)}`,
+      )
+      return
+    }
+
+    // If reloadAsync still fails, the bundle is already staged on disk and
+    // the override persists across cold starts — a force-quit picks it up.
+    try {
+      await Updates.reloadAsync()
+    } catch {
+      setError(
+        fetchedNewBundle
+          ? `Downloaded ${channelName}. Force-quit the app and re-open to load it.`
+          : `Already on ${channelName}. Nothing new to load.`,
+      )
     }
   }
 
