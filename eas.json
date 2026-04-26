@@ -6,6 +6,7 @@
     "internal": {
       "channel": "internal-default",
       "distribution": "internal",
+      "developmentClient": false,
       "env": {
         "EXPO_PUBLIC_INTERNAL_BUILD": "1"
       },
