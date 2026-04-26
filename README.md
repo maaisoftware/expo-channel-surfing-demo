@@ -94,15 +94,22 @@ The blog post makes a few claims that are documented for some and inferred for o
 
 ### `Could not reload application. Ensure you have set the appContext property of AppController.`
 
-You're running a **development build**. `Updates.reloadAsync()` only works in release-mode builds where `expo-updates` is linked natively — Expo Go, `npx expo run:ios`, and any EAS profile with `developmentClient: true` all trigger this error.
+This message is misleading. It's `UpdatesReloadException`'s static catch-all — emitted whenever the iOS native launcher returns `success=false` for *any* reason (the actual cause goes to the device log via `logger.error(cause:)`, not the JS exception). It is **not** about a missing `appContext` and **not** about a race in `EXUpdatesAppController`.
 
-The `internal` profile in `eas.json` is the right one for testing channel surfing — release mode, internal distribution, no dev client. Build it with:
+The real cause for a fresh switch to a new channel: `setUpdateRequestHeadersOverride` only persists the override; it doesn't fetch. `reloadAsync` then runs `AppLauncherWithDatabase.launchUpdate` against the local update DB filtered on the new `expo-channel-name` header. The local DB only contains bundles previously fetched (e.g. `internal-default`); no bundle exists yet for `pr-N`. The launcher finds no eligible candidate → `success=false` → the misleading exception.
 
-```bash
-eas build --profile internal --platform ios
+The `switchTo` in `App.tsx` already does the right sequence:
+
+```
+setUpdateRequestHeadersOverride
+  → checkForUpdateAsync
+  → fetchUpdateAsync   (downloads the bundle into the local DB)
+  → reloadAsync        (launcher now finds the candidate it needs)
 ```
 
-Install the resulting IPA via TestFlight or ad-hoc, force-quit any prior dev build first.
+Plus a cold-restart fallback. The override persists across cold starts, so even if the live reload fails for a different reason, force-quitting and re-opening picks up the staged bundle.
+
+If you adapt this picker into your own app, keep the fetch step. The simple "override + reload" pattern only works for channels whose bundles are already in your local DB.
 
 ### `Runtime version calculated on local machine not equal to runtime version calculated during build`
 
