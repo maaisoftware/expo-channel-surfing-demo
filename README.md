@@ -92,6 +92,18 @@ The blog post makes a few claims that are documented for some and inferred for o
 
 ## Common build errors
 
+### `Could not reload application. Ensure you have set the appContext property of AppController.`
+
+You're running a **development build**. `Updates.reloadAsync()` only works in release-mode builds where `expo-updates` is linked natively — Expo Go, `npx expo run:ios`, and any EAS profile with `developmentClient: true` all trigger this error.
+
+The `internal` profile in `eas.json` is the right one for testing channel surfing — release mode, internal distribution, no dev client. Build it with:
+
+```bash
+eas build --profile internal --platform ios
+```
+
+Install the resulting IPA via TestFlight or ad-hoc, force-quit any prior dev build first.
+
 ### `Runtime version calculated on local machine not equal to runtime version calculated during build`
 
 You'll see this if you start with `runtimeVersion: { "policy": "fingerprint" }` on a managed Expo project, install with **pnpm on Windows**, and run `eas build`.
